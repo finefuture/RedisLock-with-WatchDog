@@ -33,11 +33,12 @@
 &emsp;	首先根据注解设置的延长次数将延时任务注册到时间轮中,注册规则:次数\*超时时间\*9/10(默认9/10),次数依次递减 <br/>
 &emsp;	我们可以在@Lock注解里面自己定义延时权重，默认是9/10 <br/>
 &emsp;	TimerTask具体的任务如下: <br/>
-&emsp;	(1).判断Timeout对象（netty的具体实现是HashedWheelTimeout）是否已经取消或者任务是否已经完成（Future.isDone()） <br/>
+&emsp;	(1).判断Timeout对象（netty的具体实现是HashedWheelTimeout）是否已经取消 <br/>
+&emsp;&emsp;&emsp;  或者任务是否已经完成（Future.isDone()） <br/>
 &emsp;	(2).如果已取消或业务任务已完成不做任何操作，否则将锁的key延长时间，具体的实现稍后再说 <br/>
 &emsp;	(3).将锁延长时间的方法会返回成功或者失败，如果失败，那么我们将任务取消，出现这种情况时，有以下原因： <br/>
-&emsp;&emsp;	  因为业务超时被其他锁占用或者值被改变,或者值为null;解决方案：1.确认是否有对锁的key做过set <br/>
-&emsp;&emsp;    2.调整@Lock里面delayWight的值以确保在锁超时之前完成延时的动作 <br/>
+&emsp;&emsp;&emsp;	  因为业务超时被其他锁占用或者值被改变,或者值为null;解决方案：1.确认是否有对锁的key做过set <br/>
+&emsp;&emsp;&emsp;    2.调整@Lock里面delayWight的值以确保在锁超时之前完成延时的动作 <br/>
   4.注册到时间轮之后会返回一个Timeout对象，将这个对象放到队列中，稍后有用 <br/>
   5.进行一个空循环，条件是(!Future.isDone())，当任务完成后跳出循环，<br/>
 &emsp;  这时候遍历延长任务队列，将能取消的定时任务取消，这个过程放在其他线程执行 <br/>
