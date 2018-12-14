@@ -65,8 +65,8 @@ public class RedisLock {
         }
 
         long newLockValue = lockValue + millSeconds*delayTimes;
-        redisTemplate.opsForValue().set(lockKey, Long.toString(newLockValue));
         Long pttl = redisTemplate.getExpire(lockKey, TimeUnit.MILLISECONDS);
+        redisTemplate.opsForValue().set(lockKey, Long.toString(newLockValue));
         redisTemplate.expire(lockKey, pttl + millSeconds, TimeUnit.MILLISECONDS);
         return true;
     }
